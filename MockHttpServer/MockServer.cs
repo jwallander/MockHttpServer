@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -19,6 +20,10 @@ namespace MockHttpServer
         public IReadOnlyList<MockHttpHandler> RequestHandlers => _requestHandlers;
 
         public int Port { get; }
+
+        public string LatestRequestBody { get; private set; }
+
+        public string LatestRequestUrl { get; private set; }
 
         public MockServer(int port, string url, Func<HttpListenerRequest, HttpListenerResponse, Dictionary<string, string>, string> handlerFunction, char wildcardChar = '*')
             : this(port, new List<MockHttpHandler> { new MockHttpHandler(url, handlerFunction) }, wildcardChar)
@@ -115,6 +120,11 @@ namespace MockHttpServer
                         {
                             context.Response.ContentType("text/plain").StatusCode(404);
                             responseString = "No handler provided for URL: " + context.Request.RawUrl;
+                        }
+                        LatestRequestUrl = context.Request.RawUrl;
+                        using (var inputStreamReader = new StreamReader(context.Request.InputStream, Encoding.UTF8))
+                        {
+                            LatestRequestBody = inputStreamReader.ReadToEnd();
                         }
                         context.Request.ClearContent();
 
