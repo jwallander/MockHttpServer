@@ -1,12 +1,7 @@
 # MockHttpServer
 
-[![Build status](https://ci.appveyor.com/api/projects/status/numsjbmqdxpercff?svg=true)](https://ci.appveyor.com/project/jrharmon/mockhttpserver)
-[![NuGet Version](http://img.shields.io/nuget/v/MockHttpServer.svg?style=flat)](https://www.nuget.org/packages/MockHttpServer/)
-
 A library to help with unit/acceptance tests of code that relies on an external HTTP service, by allowing you to
 easily mock one.
-
-It can easily be installed through NuGet, using the [MockHttpServer](http://nuget.org/packages/MockHttpServer) package.
 
 ## Table of Contents
 
@@ -17,6 +12,7 @@ It can easily be installed through NuGet, using the [MockHttpServer](http://nuge
   1. [Extension Methods](#extension-methods)
   1. [Custom Extension Methods](#custom-extension-methods)
   1. [Parameters](#parameters)
+  1. [Assert Properties](#assert-properties)
 
 ##Usage
 
@@ -275,4 +271,21 @@ using (new MockServer(TestPort, "xml/{category}/{id}", (req, rsp, prm) =>
 {
     var result = client.Execute(new RestRequest("xml/horror/12345/", Method.POST)); //"<Value>horror - 12345</Value>"
 }
+```
+
+###Assert Properties
+
+The server has properties for the latest request
+
+``` C#
+string requestUrl;
+string requestBody;
+var client = new RestClient($"http://localhost:{TestPort}/");
+using (var mockServer = new MockServer(TestPort, "", (req, rsp, prm) => "Result Body"))
+{
+    var result = client.Execute(new RestRequest("", Method.GET));
+    requestUrl = mockServer.LatestRequestUrl;
+    requestBody = mockServer.LatestRequestBody;
+}
+requestBody.ShouldBe(ExpectedRequestBody);
 ```
